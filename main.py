@@ -52,3 +52,10 @@ async def new_auction(data: dict):
     send_telegram_message(message)
 
     return {"ok": True}
+
+@app.get("/test-telegram")
+async def test_telegram():
+
+    send_telegram_message("🔥 Railway Telegram test")
+
+    return {"ok": True}
