@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 import requests
+import os
 
 app = FastAPI()
 
-import os
-
+# Railway Variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
@@ -22,7 +22,9 @@ def send_telegram_message(text):
         "text": text
     }
 
-    requests.post(url, json=data)
+    response = requests.post(url, json=data)
+
+    print(response.text)
 
 
 @app.post("/webhook/new-auction")
