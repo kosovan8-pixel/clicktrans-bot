@@ -3,8 +3,10 @@ import requests
 
 app = FastAPI()
 
-BOT_TOKEN = "8852507061:AAHUXjXRNpYjE3lmxUUeOO7uoOwpNkbadMM"
-CHAT_ID = "560174831"
+import os
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
 
 
 @app.get("/")
