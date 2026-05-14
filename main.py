@@ -11,7 +11,11 @@ CHAT_ID = os.getenv("CHAT_ID")
 
 @app.get("/")
 async def root():
-    return {"status": "working"}
+    return {
+        "status": "working",
+        "telegram_bot": BOT_TOKEN is not None,
+        "chat_id": CHAT_ID
+    }
 
 
 def send_telegram_message(text):
@@ -22,9 +26,31 @@ def send_telegram_message(text):
         "text": text
     }
 
-    response = requests.post(url, json=data)
+    try:
+        response = requests.post(url, json=data)
 
-    print(response.text)
+        print("TELEGRAM RESPONSE:")
+        print(response.status_code)
+        print(response.text)
+
+        return response.json()
+
+    except Exception as e:
+        print("TELEGRAM ERROR:")
+        print(str(e))
+
+        return {"error": str(e)}
+
+
+@app.get("/test-telegram")
+async def test_telegram():
+
+    result = send_telegram_message("🔥 Railway Telegram test")
+
+    return {
+        "ok": True,
+        "telegram_response": result
+    }
 
 
 @app.post("/webhook/new-auction")
@@ -49,13 +75,9 @@ async def new_auction(data: dict):
 💰 Budget: {budget}
 """
 
-    send_telegram_message(message)
+    telegram_result = send_telegram_message(message)
 
-    return {"ok": True}
-
-@app.get("/test-telegram")
-async def test_telegram():
-
-    send_telegram_message("🔥 Railway Telegram test")
-
-    return {"ok": True}
+    return {
+        "ok": True,
+        "telegram": telegram_result
+    }
