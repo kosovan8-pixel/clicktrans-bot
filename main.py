@@ -4,17 +4,9 @@ import os
 
 app = FastAPI()
 
-CLICKTRANS_BASE = os.getenv(
-    "CLICKTRANS_BASE"
-)
-
-CLICKTRANS_EMAIL = os.getenv(
-    "CLICKTRANS_EMAIL"
-)
-
-CLICKTRANS_PASSWORD = os.getenv(
-    "CLICKTRANS_PASSWORD"
-)
+CLICKTRANS_BASE = os.getenv("CLICKTRANS_BASE")
+CLICKTRANS_EMAIL = os.getenv("CLICKTRANS_EMAIL")
+CLICKTRANS_PASSWORD = os.getenv("CLICKTRANS_PASSWORD")
 
 CLICKTRANS_HEADER_NAME = os.getenv(
     "CLICKTRANS_HEADER_NAME"
@@ -43,11 +35,14 @@ async def test_login():
 
     headers = {
 
-        CLICKTRANS_HEADER_NAME:
-        CLICKTRANS_HEADER_VALUE,
+        "accept":
+        "application/json",
 
         "Content-Type":
-        "application/json"
+        "application/json",
+
+        CLICKTRANS_HEADER_NAME:
+        CLICKTRANS_HEADER_VALUE
 
     }
 
@@ -65,13 +60,9 @@ async def test_login():
     }
 
     r = requests.post(
-
         url,
-
-        json=payload,
-
-        headers=headers
-
+        headers=headers,
+        json=payload
     )
 
     return {
