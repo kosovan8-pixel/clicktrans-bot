@@ -4,9 +4,6 @@ import os
 
 app = FastAPI()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
-
 CLICKTRANS_BASE = os.getenv(
     "CLICKTRANS_BASE"
 )
@@ -41,54 +38,80 @@ async def test_login():
 
     headers = {
         CLICKTRANS_HEADER_NAME:
-        CLICKTRANS_HEADER_VALUE
+        CLICKTRANS_HEADER_VALUE,
+
+        "Content-Type":
+        "application/json"
     }
 
-    payload = {
+    variants = [
 
-        "email":
-        CLICKTRANS_EMAIL,
+        {
+            "username":
+            CLICKTRANS_EMAIL,
 
-        "password":
-        CLICKTRANS_PASSWORD
+            "password":
+            CLICKTRANS_PASSWORD
+        },
 
-    }
+        {
+            "email":
+            CLICKTRANS_EMAIL,
 
-    urls = [
+            "password":
+            CLICKTRANS_PASSWORD
+        },
 
-        f"{CLICKTRANS_BASE}/api/login",
+        {
+            "_username":
+            CLICKTRANS_EMAIL,
 
-        f"{CLICKTRANS_BASE}/api/login_check",
+            "_password":
+            CLICKTRANS_PASSWORD
+        },
 
-        f"{CLICKTRANS_BASE}/api/auth/login"
+        {
+            "username":
+            CLICKTRANS_EMAIL,
+
+            "password":
+            CLICKTRANS_PASSWORD,
+
+            "deviceUID":
+            "PAKO-BOT"
+        }
 
     ]
 
     result = {}
 
-    for i, url in enumerate(
-        urls,
+    for i, payload in enumerate(
+        variants,
         start=1
     ):
 
         r = requests.post(
-            url,
+
+            f"{CLICKTRANS_BASE}/api/login_check",
+
             json=payload,
+
             headers=headers
+
         )
 
         result[
-            f"variant_{i}"
+            f"v{i}"
         ] = {
 
-            "url":
-            url,
+            "variant":
+            i,
 
             "status":
             r.status_code,
 
             "response":
-            r.text[:1000]
+            r.text
 
         }
 
