@@ -4,80 +4,91 @@ import os
 
 app = FastAPI()
 
-# Railway Variables
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
+CLICKTRANS_EMAIL = os.getenv("CLICKTRANS_EMAIL")
+CLICKTRANS_PASSWORD = os.getenv("CLICKTRANS_PASSWORD")
+
+HEADER_NAME = os.getenv("CLICKTRANS_HEADER_NAME")
+HEADER_VALUE = os.getenv("CLICKTRANS_HEADER_VALUE")
+
+BASE = os.getenv(
+    "CLICKTRANS_BASE",
+    "https://staging-02.develop.clicktrans.pl"
+)
 
 
 @app.get("/")
 async def root():
-    return {
-        "status": "working",
-        "telegram_bot": BOT_TOKEN is not None,
-        "chat_id": CHAT_ID
+    return {"status": "working"}
+
+
+def get_jwt():
+
+    url = f"{BASE}/api/login_check"
+
+    payload = {
+        "username": CLICKTRANS_EMAIL,
+        "password": CLICKTRANS_PASSWORD,
+        "deviceUID": "web-test"
     }
 
-
-def send_telegram_message(text):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-
-    data = {
-        "chat_id": CHAT_ID,
-        "text": text
+    headers = {
+        HEADER_NAME: HEADER_VALUE
     }
 
-    try:
-        response = requests.post(url, json=data)
+    r = requests.post(
+        url,
+        json=payload,
+        headers=headers
+    )
 
-        print("TELEGRAM RESPONSE:")
-        print(response.status_code)
-        print(response.text)
+    print(r.text)
 
-        return response.json()
-
-    except Exception as e:
-        print("TELEGRAM ERROR:")
-        print(str(e))
-
-        return {"error": str(e)}
+    return r.json()
 
 
-@app.get("/test-telegram")
-async def test_telegram():
+@app.get("/test-login")
+async def test_login():
 
-    result = send_telegram_message("🔥 Railway Telegram test")
+    token = get_jwt()
 
-    return {
-        "ok": True,
-        "telegram_response": result
+    return token
+
+
+@app.get("/test-auction/{auction_id}")
+async def test_auction(auction_id: int):
+
+    jwt_data = get_jwt()
+
+    token = jwt_data["token"]
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        HEADER_NAME: HEADER_VALUE
     }
+
+    url = f"{BASE}/api/mobile/auction/{auction_id}"
+
+    r = requests.get(
+        url,
+        headers=headers
+    )
+
+    return r.json()
 
 
 @app.post("/webhook/new-auction")
 async def new_auction(data: dict):
 
-    print("NEW AUCTION:")
     print(data)
 
-    title = data.get("title", "No title")
-    from_city = data.get("fromLocalizationShort", "Unknown")
-    to_city = data.get("toLocalizationShort", "Unknown")
-    budget = data.get("budget", "No budget")
+    return {"ok": True}
 
-    message = f"""
-🚛 NEW AUCTION
 
-📦 {title}
+@app.post("/webhook/update-auction")
+async def update_auction(data: dict):
 
-📍 {from_city}
-➡️ {to_city}
+    print("UPDATED")
 
-💰 Budget: {budget}
-"""
+    print(data)
 
-    telegram_result = send_telegram_message(message)
-
-    return {
-        "ok": True,
-        "telegram": telegram_result
-    }
+    return {"ok": True}
