@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 import requests
-from requests.auth import HTTPBasicAuth
 import os
 
 app = FastAPI()
@@ -37,52 +36,50 @@ async def root():
 @app.get("/test-login")
 async def test_login():
 
-    headers = {
-        CLICKTRANS_HEADER_NAME:
-        CLICKTRANS_HEADER_VALUE
-    }
-
-    auth = HTTPBasicAuth(
-        CLICKTRANS_EMAIL,
-        CLICKTRANS_PASSWORD
+    url = (
+        f"{CLICKTRANS_BASE}"
+        "/api/login_check"
     )
 
-    urls = [
+    headers = {
 
-        "/api/login_check",
+        CLICKTRANS_HEADER_NAME:
+        CLICKTRANS_HEADER_VALUE,
 
-        "/api/login",
+        "Content-Type":
+        "application/json"
 
-        "/api/auth/login",
+    }
 
-        "/swagger",
+    payload = {
 
-        "/api"
+        "username":
+        CLICKTRANS_EMAIL,
 
-    ]
+        "password":
+        CLICKTRANS_PASSWORD,
 
-    result = {}
+        "deviceUID":
+        "PAKO-BOT"
 
-    for url in urls:
+    }
 
-        r = requests.get(
+    r = requests.post(
 
-            f"{CLICKTRANS_BASE}{url}",
+        url,
 
-            headers=headers,
+        json=payload,
 
-            auth=auth
+        headers=headers
 
-        )
+    )
 
-        result[url] = {
+    return {
 
-            "status":
-            r.status_code,
+        "status":
+        r.status_code,
 
-            "response":
-            r.text[:300]
+        "response":
+        r.text
 
-        }
-
-    return result
+    }
