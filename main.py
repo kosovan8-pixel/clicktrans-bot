@@ -4,173 +4,81 @@ import os
 
 app = FastAPI()
 
-CLICKTRANS_EMAIL = os.getenv(
-    "CLICKTRANS_EMAIL"
-)
+# Telegram
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
 
-CLICKTRANS_PASSWORD = os.getenv(
-    "CLICKTRANS_PASSWORD"
-)
-
-HEADER_NAME = os.getenv(
-    "CLICKTRANS_HEADER_NAME"
-)
-
-HEADER_VALUE = os.getenv(
-    "CLICKTRANS_HEADER_VALUE"
-)
-
-BASE = os.getenv(
+# Clicktrans
+CLICKTRANS_BASE = os.getenv(
     "CLICKTRANS_BASE",
     "https://staging-02.develop.clicktrans.pl"
+)
+
+CLICKTRANS_EMAIL = os.getenv("CLICKTRANS_EMAIL")
+CLICKTRANS_PASSWORD = os.getenv("CLICKTRANS_PASSWORD")
+
+CLICKTRANS_HEADER_NAME = os.getenv(
+    "CLICKTRANS_HEADER_NAME",
+    "user-partner-header"
+)
+
+CLICKTRANS_HEADER_VALUE = os.getenv(
+    "CLICKTRANS_HEADER_VALUE",
+    "clicktranspartner"
 )
 
 
 @app.get("/")
 async def root():
+    return {"status": "working"}
 
-    return {
-        "status": "working"
+
+def send_telegram(text):
+
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+
+    data = {
+        "chat_id": CHAT_ID,
+        "text": text
     }
 
+    requests.post(url, json=data)
 
-def test_request(
-    name,
-    payload,
-    use_json=True
-):
 
-    url = (
-        f"{BASE}"
-        f"/api/login_check"
-    )
+def get_jwt():
+
+    url = f"{CLICKTRANS_BASE}/api/login_check"
 
     headers = {
-        HEADER_NAME:
-            HEADER_VALUE
+        CLICKTRANS_HEADER_NAME:
+        CLICKTRANS_HEADER_VALUE
     }
 
-    if use_json:
-
-        r = requests.post(
-            url,
-            json=payload,
-            headers=headers
-        )
-
-    else:
-
-        r = requests.post(
-            url,
-            data=payload,
-            headers=headers
-        )
-
-    return {
-        "name": name,
-        "status": r.status_code,
-        "response": r.text
+    payload = {
+        "username": CLICKTRANS_EMAIL,
+        "password": CLICKTRANS_PASSWORD,
+        "deviceUID": "PAKO-BOT"
     }
+
+    response = requests.post(
+        url,
+        json=payload,
+        headers=headers
+    )
+
+    print(response.status_code)
+    print(response.text)
+
+    return response.json()
 
 
 @app.get("/test-login")
 async def test_login():
 
-    return {
+    token = get_jwt()
 
-        "a":
+    send_telegram(
+        f"JWT TEST\n\n{token}"
+    )
 
-        test_request(
-
-            "email/password json",
-
-            {
-
-                "email":
-                    CLICKTRANS_EMAIL,
-
-                "password":
-                    CLICKTRANS_PASSWORD
-            }
-
-        ),
-
-        "b":
-
-        test_request(
-
-            "username/password json",
-
-            {
-
-                "username":
-                    CLICKTRANS_EMAIL,
-
-                "password":
-                    CLICKTRANS_PASSWORD
-            }
-
-        ),
-
-        "c":
-
-        test_request(
-
-            "_username/_password json",
-
-            {
-
-                "_username":
-                    CLICKTRANS_EMAIL,
-
-                "_password":
-                    CLICKTRANS_PASSWORD
-            }
-
-        ),
-
-        "d":
-
-        test_request(
-
-            "email/password form",
-
-            {
-
-                "email":
-                    CLICKTRANS_EMAIL,
-
-                "password":
-                    CLICKTRANS_PASSWORD
-            },
-
-            False
-        )
-
-    }
-
-
-@app.post(
-    "/webhook/new-auction"
-)
-async def new_auction(
-    data: dict
-):
-
-    print(data)
-
-    return {
-        "ok": True
-    }
-
-
-@app.post(
-    "/webhook/update-auction"
-)
-async def update_auction(
-    data: dict
-):
-
-    return {
-        "ok": True
-    }
+    return token
