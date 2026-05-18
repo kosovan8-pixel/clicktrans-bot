@@ -73,8 +73,8 @@ def get_jwt():
     url = f"{BASE}/api/login_check"
 
     payload = {
-        "_username": CLICKTRANS_EMAIL,
-        "_password": CLICKTRANS_PASSWORD
+        "username": CLICKTRANS_EMAIL,
+        "password": CLICKTRANS_PASSWORD
     }
 
     headers = {
@@ -84,12 +84,12 @@ def get_jwt():
 
     r = requests.post(
         url,
-        json=payload,
+        data=payload,
         headers=headers
     )
 
-    print("STATUS:", r.status_code)
-    print("TEXT:", r.text)
+    print(r.status_code)
+    print(r.text)
 
     if r.status_code != 200:
 
@@ -99,9 +99,7 @@ def get_jwt():
             "response": r.text
         }
 
-    try:
-
-        return r.json()
+    return r.json()
 
     except Exception:
 
